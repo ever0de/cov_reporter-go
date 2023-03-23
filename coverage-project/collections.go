@@ -2,6 +2,11 @@ package collections
 
 type Stack []interface{}
 
+func NewStack() *Stack {
+	s := make(Stack, 0)
+	return &s
+}
+
 func (s *Stack) IsEmpty() bool {
 	return len(*s) == 0
 }
