@@ -1,0 +1,7 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "dependencies": {
+    "table": "^6.8.1"
+  }
+}
