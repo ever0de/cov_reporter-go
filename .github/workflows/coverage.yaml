@@ -1,0 +1,61 @@
+name: Coverage
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    env:
+      BOT_NAME: "ever0de"
+
+      TARGET_BRANCH_COVERAGE_FILE: "prev-coverage.out"
+      CURRENT_BRANCH_COVERAGE_FILE: "curr-coverage.out"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.20"
+          check-latest: true
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7.30.0
+
+      - name: Test with Coverage
+        id: coverage
+        run: |
+          git fetch origin $GITHUB_BASE_REF --depth=1
+          git checkout $GITHUB_BASE_REF
+          go test -timeout 5m -coverprofile=$TARGET_BRANCH_COVERAGE_FILE ./...
+          go tool cover -func=$TARGET_BRANCH_COVERAGE_FILE -o=$TARGET_BRANCH_COVERAGE_FILE
+
+          git fetch origin $GITHUB_HEAD_REF --depth=1
+          git checkout $GITHUB_HEAD_REF
+          go test -timeout 5m -coverprofile=$CURRENT_BRANCH_COVERAGE_FILE ./...
+          go tool cover -func=$CURRENT_BRANCH_COVERAGE_FILE -o=$CURRENT_BRANCH_COVERAGE_FILE
+
+      - name: Install script dependencies
+        run: |
+          cd scripts
+          pnpm install
+
+      - uses: actions/github-script@v6
+        if: ${{ success() }}
+        with:
+          github-token: ${{ secrets.COVERAGE_ACCESS_TOKEN }}
+          script: |
+            const script = require('./scripts/comment.js')
+            await script({github, context})
