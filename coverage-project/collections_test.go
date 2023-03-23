@@ -23,5 +23,7 @@ func TestStack(t *testing.T) {
 		t.Error("Expected 1")
 	}
 
+	assert.Nil(t, stack.Pop())
+
 	assert.True(t, stack.IsEmpty())
 }
