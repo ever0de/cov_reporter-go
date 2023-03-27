@@ -1,4 +1,5 @@
 const fs = require("fs");
+const MarkdownTableConfig = require("./table-config");
 const { table } = require("table");
 
 const getCoverageObject = (path) => {
@@ -135,7 +136,7 @@ module.exports = async ({ github, context }) => {
   let message = `Coverage: \`${currentTotal}\`\n`;
   if (diffRows.length > 1) {
     message += `## Diff: \`${diffRows.length - 1}\`\n`;
-    message += `\`\`\`${table(diffRows)}\`\`\``;
+    message += table(diffRows, MarkdownTableConfig);
   }
 
   const { data: comments } = await github.rest.issues.listComments({
